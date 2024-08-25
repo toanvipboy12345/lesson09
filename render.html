@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tea Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 700px; 
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 1.5rem; 
+        }
+        
+        .search {
+            margin-bottom: 1rem;
+        }
+        
+        .search input {
+            padding: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .cart {
+            background-color: white;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .image {
+            width: 130%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;    
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .price-weight {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-right: 1.5rem; 
+            margin-left: 1.5rem; 
+        }
+        
+        .price {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .weight {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .page-button {
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            cursor: pointer;
+        }
+        
+        .page-button:hover {
+            border: 1px solid #25eb35;
+            color: #25eb35;
+        }
+        
+        .page-button.active {
+            background-color: #25eb35;
+            color: white;
+            border: none;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="search">
+            <input type="text" id="searchInput" placeholder="Search for tea...">
+        </div>
+        <div class="list">
+            <!-- Products will be rendered here -->
+        </div>
+    </div>
+
+    <div class="pagination">
+        <button class="page-button" data-page="1" onclick="changePage(1)">1</button>
+        <button class="page-button" data-page="2" onclick="changePage(2)">2</button>
+        <button class="page-button" data-page="3" onclick="changePage(3)">3</button>
+        <button class="page-button" data-page="4" onclick="changePage(4)">4</button>
+        <button class="page-button" data-page="5" onclick="changePage(5)">5</button>
+    </div>
+    
+</body>
+<script>
+    // Dữ liệu sản phẩm
+    const listcart = [
+        { id: 1, title: 'Tea 1', image: 'sp1.png', price: '10000VND', weight: '100g' },
+        { id: 2, title: 'Tea 2', image: 'sp1.png', price: '10000VND', weight: '100g' },
+        { id: 3, title: 'Tea 3', image: 'sp1.png', price: '10000VND', weight: '100g' },
+        { id: 4, title: 'Tea 4', image: 'sp1.png', price: '10000VND', weight: '100g' },
+        { id: 5, title: 'Tea 5', image: 'sp1.png', price: '10000VND', weight: '100g' },
+        { id: 6, title: 'Tea 6', image: 'sp1.png', price: '10000VND', weight: '100g' },
+        { id: 7, title: 'Tea 7', image: 'sp1.png', price: '10000VND', weight: '100g' },
+        { id: 8, title: 'Tea 8', image: 'sp1.png', price: '10000VND', weight: '100g' }
+    ];
+
+    // Khai báo biến để lưu trang hiện tại, số lượng sản phẩm mỗi trang và danh sách đã lọc
+    let currentPage = 1; // Trang hiện tại
+    const itemsPerPage = 6; // Số lượng sản phẩm mỗi trang
+    let filteredList = listcart; // Danh sách sản phẩm đã lọc
+
+    // Chức năng Render sản phẩm
+    function renderCart(cart) {
+        return `
+            <div class="cart">
+                <span class="product-id" hidden>${cart.id}</span>
+                <img aria-hidden="true" alt="${cart.title}" src="img/${cart.image}" class="image" />
+                <p class="title">${cart.title}</p>
+                <div class="price-weight">
+                    <p class="price">${cart.price}</p>
+                    <p class="weight">Weight: ${cart.weight}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderListCart(cart) {
+        let content = '';
+        for (let i = 0; i < cart.length; i++) {
+            content += renderCart(cart[i]);
+        }
+        document.getElementsByClassName('list')[0].innerHTML = content;
+    }
+
+    // Phân trang
+    function showPage(page, list = filteredList) {
+        const totalPages = Math.ceil(list.length / itemsPerPage);
+        if (page > totalPages) page = totalPages; // Nếu trang yêu cầu vượt quá tổng số trang
+        if (page < 1) page = 1; // Nếu trang yêu cầu nhỏ hơn 1
+        
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        renderListCart(list.slice(start, end));
+
+        // Cập nhật trạng thái của các nút phân trang
+        const buttons = document.querySelectorAll('.page-button');
+        buttons.forEach(button => {
+            button.classList.remove('active');
+        });
+        document.querySelector(`.page-button[data-page="${page}"]`).classList.add('active');
+    }
+
+    function changePage(page) {
+        showPage(page);
+        currentPage = page;
+    }
+
+    // Tìm kiếm
+    function filterListCart(query) {
+        filteredList = listcart.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
+        currentPage = 1; // Đặt về trang đầu tiên sau khi lọc
+        showPage(currentPage, filteredList);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (event) => {
+        const query = event.target.value;
+        filterListCart(query);
+    });
+
+    // Khởi tạo hiển thị trang đầu tiên
+    showPage(currentPage);
+
+</script>
+
+</html>
